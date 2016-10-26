@@ -1,4 +1,6 @@
 module Urabbit::RPC::Server
+  SleepInterval = 1 # How often to check if server should stop.
+
   def initialize(cloudamqp_url = ENV["CLOUDAMQP_URL"])
     @connection = Bunny.new(cloudamqp_url, logger: logger)
     @connection.start
@@ -41,13 +43,16 @@ module Urabbit::RPC::Server
 
     # Subscribing in blocking mode above disables auto-reconnection feature.
     # It's better to just sleep.
-    sleep
+    until(@should_stop) do
+      sleep(SleepInterval)
+    end
 
     logger.info("Stopped responding to RPC calls for #{self.class.name}")
   end
 
   # TODO: Use this method when server_engine is implemented.
   def stop
+    @should_stop = true
     @channel.close
     @connection.close
 

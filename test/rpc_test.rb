@@ -12,6 +12,8 @@ end
 
 class RPCTest < Minitest::Test
   def setup
+    # Shorter delay when server is stopped in tests.
+    Urabbit::RPC::Server.const_set(:SleepInterval, 0.01)
     @rpc_server = RPCTestServer.new
     @server_thread = Thread.new do
       @rpc_server.start
