@@ -1,19 +1,10 @@
 module Urabbit::RPC::Server
   SleepInterval = 1 # How often to check if server should stop.
 
-  def initialize(cloudamqp_url = ENV["CLOUDAMQP_URL"])
-    @connection = Bunny.new(cloudamqp_url, logger: logger)
-    @connection.start
-
-    @channel = @connection.create_channel
-
-    # TODO: Test which setting is the best
-    # @channel.prefetch(1)
-  end
-
   # TODO: Currently this is called directly, but it should
   # be called using server_engine.
   def start
+    @channel = Urabbit.create_channel
     logger.info("Starting RPC server for #{self.class.name}")
 
     @queue = @channel.queue(self.class.queue_name)
@@ -53,9 +44,6 @@ module Urabbit::RPC::Server
   # TODO: Use this method when server_engine is implemented.
   def stop
     @should_stop = true
-    @channel.close
-    @connection.close
-
     logger.info("Stopped RPC server for #{self.class.name}")
   end
 

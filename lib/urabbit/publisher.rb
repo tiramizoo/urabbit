@@ -13,8 +13,6 @@
 # Message is usually a JSON.
 # Exception can contain a cause raised from Bunny.
 class Urabbit::Publisher
-  class Error < Exception; end
-
   def initialize(opts)
     cloudamqp_url = opts[:cloudamqp_url] || ENV["CLOUDAMQP_URL"]
     exchange_type = opts[:exchange_type] || :topic
@@ -23,9 +21,7 @@ class Urabbit::Publisher
     @routing_key = opts[:routing_key] ||
       raise(Error.new("Please provide a 'routing_key'"))
 
-    @connection = Bunny.new(cloudamqp_url, logger: Urabbit.logger)
-    @connection.start
-    @channel = @connection.create_channel
+    @channel = Urabbit.create_channel
     @exchange = Bunny::Exchange.new(
       @channel,
       exchange_type,

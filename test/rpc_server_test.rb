@@ -1,5 +1,6 @@
 require 'test_helper'
 
+
 class RPCTestServer
   include Urabbit::RPC::Server
 
@@ -10,10 +11,12 @@ class RPCTestServer
   end
 end
 
-class RPCTest < Minitest::Test
+class RPCServerTest < Minitest::Test
   def setup
+    Urabbit.connect
     # Shorter delay when server is stopped in tests.
     Urabbit::RPC::Server.const_set(:SleepInterval, 0.01)
+
     @rpc_server = RPCTestServer.new
     @server_thread = Thread.new do
       @rpc_server.start
@@ -28,8 +31,17 @@ class RPCTest < Minitest::Test
   def test_responds_to_malformed_requests_with_an_exception
     rpc_client = Urabbit::RPC::Client.new
 
-    assert_raises(Urabbit::RPC::Client::Error) do
+    assert_raises(Urabbit::Error) do
       rpc_client.call('rpc.test', 'not a json')
+    end
+  end
+
+  def test_when_RPC_server_is_down
+    rpc_client = Urabbit::RPC::Client.new
+
+    assert_raises(Urabbit::Error) do
+      # Setting a short timeout for tests.
+      rpc_client.call('non-existent-routing-key', 'message', 0.1)
     end
   end
 
@@ -41,31 +53,5 @@ class RPCTest < Minitest::Test
     )
 
     assert_equal({"key" => "value"}, result)
-  end
-
-  def test_when_RabbitMQ_server_is_down
-    assert_raises(Urabbit::RPC::Client::Error) do
-      # Connecting to a non-existent server
-      Urabbit::RPC::Client.new("amqp://localhost:6666")
-    end
-  end
-
-  def test_when_RPC_server_is_down
-    rpc_client = Urabbit::RPC::Client.new
-
-    assert_raises(Urabbit::RPC::Client::Error) do
-      # Setting a short timeout for tests.
-      rpc_client.call('non-existent-routing-key', 'message', 0.1)
-    end
-  end
-
-  def test_an_exception_contains_a_cause
-    begin
-      Urabbit::RPC::Client.new("amqp://localhost:6666")
-    rescue Urabbit::RPC::Client::Error => e
-      cause = e.cause
-    end
-
-    assert_equal Bunny::TCPConnectionFailedForAllHosts, cause.class
   end
 end

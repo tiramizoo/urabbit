@@ -18,14 +18,10 @@
 #               can be thrown during initialization and method calls.
 #               It can also contain a cause raised from Bunny itself.
 class Urabbit::RPC::Client
-  class Error < Exception; end
-  class ServerError < Error; end
+  class ServerError < Urabbit::Error; end
 
-  def initialize(cloudamqp_url = ENV["CLOUDAMQP_URL"])
-    @connection = Bunny.new(cloudamqp_url, logger: Urabbit.logger)
-    @connection.start
-
-    @channel = @connection.create_channel
+  def initialize
+    @channel = Urabbit.create_channel
     @exchange = @channel.default_exchange
     @reply_queue = @channel.queue("amq.rabbitmq.reply-to")
 
@@ -45,7 +41,7 @@ class Urabbit::RPC::Client
       end
     end
   rescue Bunny::Exception
-    raise Error.new("Error connecting to queue")
+    raise Urabbit::Error.new("Error connecting to queue")
   end
 
   def call(routing_key, message, timeout = 10)
@@ -60,7 +56,7 @@ class Urabbit::RPC::Client
     @lock.synchronize{@condition.wait(@lock, timeout)}
 
     if @error.nil? && @result.nil?
-      raise Error.new("Timed out waiting for reply. "\
+      raise Urabbit::Error.new("Timed out waiting for reply. "\
         "Make sure the RPC queue name is correct.")
     end
 
@@ -70,6 +66,6 @@ class Urabbit::RPC::Client
       @result
     end
   rescue Bunny::Exception
-    raise Error.new("Error communicating with queue")
+    raise Urabbit::Error.new("Error communicating with queue")
   end
 end
