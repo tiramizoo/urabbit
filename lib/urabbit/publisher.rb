@@ -26,7 +26,12 @@ class Urabbit::Publisher
     @connection = Bunny.new(cloudamqp_url, logger: Urabbit.logger)
     @connection.start
     @channel = @connection.create_channel
-    @exchange = Bunny::Exchange.new(@channel, exchange_type, exchange_name)
+    @exchange = Bunny::Exchange.new(
+      @channel,
+      exchange_type,
+      exchange_name,
+      durable: true
+    )
   rescue Bunny::Exception
     raise Error.new("Error connecting to queue")
   end

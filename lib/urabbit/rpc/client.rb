@@ -19,6 +19,7 @@
 #               It can also contain a cause raised from Bunny itself.
 class Urabbit::RPC::Client
   class Error < Exception; end
+  class ServerError < Error; end
 
   def initialize(cloudamqp_url = ENV["CLOUDAMQP_URL"])
     @connection = Bunny.new(cloudamqp_url, logger: Urabbit.logger)
@@ -59,11 +60,12 @@ class Urabbit::RPC::Client
     @lock.synchronize{@condition.wait(@lock, timeout)}
 
     if @error.nil? && @result.nil?
-      raise Error.new("Timed out waiting for reply")
+      raise Error.new("Timed out waiting for reply. "\
+        "Make sure the RPC queue name is correct.")
     end
 
     if @error
-      raise Error.new(@error['message'])
+      raise ServerError.new(@error['message'])
     else
       @result
     end

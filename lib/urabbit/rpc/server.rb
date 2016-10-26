@@ -17,7 +17,7 @@ module Urabbit::RPC::Server
     @queue = @channel.queue(self.class.queue_name)
     @exchange = @channel.default_exchange
 
-    @queue.subscribe(block: true) do |delivery_info, properties, payload|
+    @queue.subscribe do |delivery_info, properties, payload|
       begin
         result = work(payload)
 
@@ -38,6 +38,10 @@ module Urabbit::RPC::Server
         )
       end
     end
+
+    # Subscribing in blocking mode above disables auto-reconnection feature.
+    # It's better to just sleep.
+    sleep
 
     logger.info("Stopped responding to RPC calls for #{self.class.name}")
   end
