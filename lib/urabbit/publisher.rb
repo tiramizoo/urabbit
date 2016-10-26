@@ -19,9 +19,9 @@ class Urabbit::Publisher
     cloudamqp_url = opts[:cloudamqp_url] || ENV["CLOUDAMQP_URL"]
     exchange_type = opts[:exchange_type] || :topic
     exchange_name = opts[:exchange_name] ||
-      raise(Error, "Please provide an 'exchange_name'")
+      raise(Error.new("Please provide an 'exchange_name'"))
     @routing_key = opts[:routing_key] ||
-      raise(Error, "Please provide a 'routing_key'")
+      raise(Error.new("Please provide a 'routing_key'"))
 
     @connection = Bunny.new(cloudamqp_url, logger: Urabbit.logger)
     @connection.start
