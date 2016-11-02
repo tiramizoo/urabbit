@@ -29,6 +29,12 @@ module Urabbit::RPC::Server
             }
           }
         )
+
+        logger.warn(
+          "RPC Server for #{self.class.name} responded with an error "\
+          "due to an exception: #{exception.inspect} caused by payload: "\
+          "#{payload.inspect}"
+        )
       end
     end
 
