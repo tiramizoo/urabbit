@@ -14,7 +14,6 @@
 # Exception can contain a cause raised from Bunny.
 class Urabbit::Publisher
   def initialize(opts)
-    cloudamqp_url = opts[:cloudamqp_url] || ENV["CLOUDAMQP_URL"]
     exchange_type = opts[:exchange_type] || :topic
     exchange_name = opts[:exchange_name] ||
       raise(Error.new("Please provide an 'exchange_name'"))
