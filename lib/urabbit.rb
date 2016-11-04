@@ -5,6 +5,7 @@ require "securerandom"
 
 module Urabbit
   class Error < Exception; end
+  @mutex = Mutex.new
 
   def self.logger
     @logger ||= if defined?(Rails)
@@ -19,16 +20,24 @@ module Urabbit
   end
 
   # A single connection shared between threads.
-  def self.connect(cloudamqp_url = ENV["CLOUDAMQP_URL"])
-    @connection = Bunny.new(cloudamqp_url, logger: logger)
-    @connection.start
-    @connection
-  rescue Bunny::Exception
-    raise Error.new("Error connecting to RabbitMQ")
+  def self.connection(cloudamqp_url = ENV["CLOUDAMQP_URL"])
+    @mutex.synchronize do
+      @connection ||= begin
+        connection = Bunny.new(cloudamqp_url, logger: logger)
+        connection.start
+        connection
+      rescue Bunny::Exception
+        raise Error.new("Error connecting to RabbitMQ")
+      end
+    end
+  end
+
+  def self.disconnect
+    @connection = nil
   end
 
   def self.create_channel
-    @connection.create_channel
+    connection.create_channel
   end
 end
 
