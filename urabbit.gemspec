@@ -22,4 +22,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "minitest", "~> 5.0"
 
   spec.add_dependency "bunny", "~> 2.2.0"
+  spec.add_dependency "sneakers", "2.3.5"
+  spec.add_dependency "sneakers_handlers", "0.0.2"
 end
