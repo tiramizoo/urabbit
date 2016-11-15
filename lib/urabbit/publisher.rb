@@ -16,9 +16,9 @@ class Urabbit::Publisher
   def initialize(opts)
     exchange_type = opts[:exchange_type] || :topic
     exchange_name = opts[:exchange_name] ||
-      raise(Error.new("Please provide an 'exchange_name'"))
+      raise(Urabbit::Error.new("Please provide an 'exchange_name'"))
     @routing_key = opts[:routing_key] ||
-      raise(Error.new("Please provide a 'routing_key'"))
+      raise(Urabbit::Error.new("Please provide a 'routing_key'"))
 
     @channel = Urabbit.create_channel
     @exchange = Bunny::Exchange.new(
@@ -28,12 +28,12 @@ class Urabbit::Publisher
       durable: true
     )
   rescue Bunny::Exception
-    raise Error.new("Error connecting to queue")
+    raise Urabbit::Error.new("Error connecting to queue")
   end
 
   def publish(message)
     @exchange.publish(message, routing_key: @routing_key)
   rescue Bunny::Exception
-    raise Error.new("Error communicating with queue")
+    raise Urabbit::Error.new("Error communicating with queue")
   end
 end
